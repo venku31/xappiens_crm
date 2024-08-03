@@ -123,12 +123,9 @@ app_license = "unlicense"
 # Hook on document methods and events
 
 doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-"CRM Lead" : {"on_update":"xappiens_crm.xappiens_crm.lead.execute"},
+"CRM Lead" : {
+    "validate":"xappiens_crm.xappiens_crm.doc_events.lead.execute"
+    },
 }
 
 # Scheduled Tasks
