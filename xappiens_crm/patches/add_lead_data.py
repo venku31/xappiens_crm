@@ -21,20 +21,27 @@ def execute():
     """, as_dict=1)
     
     if leads:
-        latest_lead_name = leads[0]['name']
-        latest_lead = frappe.get_doc("CRM Lead", latest_lead_name)
-        
+        leads_by_email = {}
         for lead in leads:
-            if lead['name'] != latest_lead_name:
- 
-                serialized_lead = json.dumps(lead, default=serialize_datetime)
-                latest_lead.append("custom_leads", {
-                    "lead_data_json": serialized_lead
-                })
-
-                frappe.delete_doc("CRM Lead", lead['name'], ignore_missing=True)
+            email = lead['email']
+            if email not in leads_by_email:
+                leads_by_email[email] = []
+            leads_by_email[email].append(lead)
         
-
-        latest_lead.save()
+        for email, leads in leads_by_email.items():
+            latest_lead_name = leads[0]['name']
+            latest_lead = frappe.get_doc("CRM Lead", latest_lead_name)
+            
+            for lead in leads:
+                if lead['name'] != latest_lead_name:
+                    serialized_lead = json.dumps(lead, default=serialize_datetime)
+                    latest_lead.append("custom_leads", {
+                        "lead_data_json": serialized_lead
+                    })
+                    
+      
+                    frappe.delete_doc("CRM Lead", lead['name'], ignore_missing=True)
+            
+            latest_lead.save()
 
         
