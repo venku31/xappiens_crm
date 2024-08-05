@@ -2,7 +2,7 @@ import frappe
 
 @frappe.whitelist()
 def execute(doc, method=None):
-    # Consulta para obtener el lead existente con el mismo email
+
     old_lead = frappe.db.sql("""
         SELECT * FROM `tabCRM Lead`
         WHERE email = %s AND name != %s
@@ -11,14 +11,13 @@ def execute(doc, method=None):
     if old_lead:
         old_lead_name = old_lead[0]['name']
 
-        # Agregar datos a la tabla hija del nuevo lead
+
         doc.append("custom_leads", {
             "crm_lead": old_lead[0]['name'],
-            "lead_name": old_lead[0].get('first_name', 'Unknown Name'),
-            "lead_owner": old_lead[0].get('owner', 'Unassigned')
+            "lead_name": old_lead[0]['first_name'],
+            "lead_owner": old_lead[0]['lead_owner']
         })
 
-        # Obtener datos de la tabla hija del lead antiguo si existen
         lead_child = frappe.db.sql("""
             SELECT crm_lead, lead_name, lead_owner FROM `tabLead Child`
             WHERE parent = %s
