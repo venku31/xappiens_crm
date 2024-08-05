@@ -14,7 +14,7 @@ def execute(doc, method=None):
 
         doc.append("custom_leads", {
             "crm_lead": old_lead[0]['name'],
-            "lead_name": old_lead[0]['first_name'],
+            "lead_name": old_lead[0]['lead_name'],
             "lead_owner": old_lead[0]['lead_owner']
         })
 

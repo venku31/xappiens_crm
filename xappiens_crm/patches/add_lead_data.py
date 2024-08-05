@@ -37,7 +37,7 @@ def execute():
         for lead in leads:
             if lead['name'] != latest_lead_name:
                 # Acceder a los campos del lead duplicado usando el diccionario
-                lead_name = lead.get('first_name', 'Unknown Name')
+                lead_name = lead.get('lead_name', 'Unknown Name')
                 lead_owner = lead.get('owner', 'Unassigned')
 
                 # Verificar los valores antes de añadir
