@@ -1,38 +1,38 @@
 import frappe
-import json
-from datetime import datetime
-
-def serialize_datetime(obj):
-    if isinstance(obj, datetime):
-        return obj.isoformat() 
-    raise TypeError("Type not serializable")
 
 @frappe.whitelist()
 def execute(doc, method=None):
+    # Consulta para obtener el lead existente con el mismo email
     old_lead = frappe.db.sql("""
         SELECT * FROM `tabCRM Lead`
-        WHERE email = '{}'
-    """.format(doc.email),as_dict=1)
-    
-   
-    
-    if old_lead and old_lead[0]['name']!=doc.name:
-        serialized_lead = json.dumps(old_lead, default=serialize_datetime)
+        WHERE email = %s AND name != %s
+    """, (doc.email, doc.name), as_dict=1)
+
+    if old_lead:
+        old_lead_name = old_lead[0]['name']
+
+        # Agregar datos a la tabla hija del nuevo lead
         doc.append("custom_leads", {
-                            "lead_data_json": serialized_lead
-                        })
-        lead_child =frappe.db.sql("""
-        SELECT lc.lead_data_json FROM `tabLead Child` lc,`tabCRM Lead` l
-        WHERE lc.parent = l.name and l.name = '{}'
-    """.format(old_lead[0]['name']),as_dict=1)
-        
+            "crm_lead": old_lead[0]['name'],
+            "lead_name": old_lead[0].get('first_name', 'Unknown Name'),
+            "lead_owner": old_lead[0].get('owner', 'Unassigned')
+        })
+
+        # Obtener datos de la tabla hija del lead antiguo si existen
+        lead_child = frappe.db.sql("""
+            SELECT crm_lead, lead_name, lead_owner FROM `tabLead Child`
+            WHERE parent = %s
+        """, old_lead_name, as_dict=1)
 
         if lead_child:
             for lead in lead_child:
                 doc.append("custom_leads", {
-                                    "lead_data_json": lead.get('lead_data_json')
-                                })
-    
-        frappe.delete_doc("CRM Lead", old_lead[0]['name'], ignore_missing=True)
-        
-    
+                    "crm_lead": lead['crm_lead'],
+                    "lead_name": lead['lead_name'],
+                    "lead_owner": lead['lead_owner']
+                })
+
+        # Eliminar el lead duplicado
+        frappe.delete_doc("CRM Lead", old_lead_name, ignore_missing=True)
+
+    frappe.db.commit()  # Asegúrate de que todos los cambios se confirmen en la base de datos
