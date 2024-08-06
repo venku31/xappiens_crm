@@ -11,6 +11,17 @@ def execute(doc, method=None):
     if old_lead:
         old_lead_name = old_lead[0]['name']
 
+        # Load the merging document
+        original_doc = frappe.get_doc("CRM Lead", old_lead_name)
+        # Create a new merged Leads document instance
+        new_doc = frappe.new_doc("Merged Leads")
+        # Copy data from the merging document
+        new_doc.update(original_doc.as_dict())
+         # Set the custom data for the specified fields
+        new_doc.set("docname", old_lead_name)
+        # Save the new document
+        new_doc.insert()
+
 
         doc.append("custom_leads", {
             "crm_lead": old_lead[0]['name'],
