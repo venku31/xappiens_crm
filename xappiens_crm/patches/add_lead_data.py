@@ -50,7 +50,17 @@ def execute():
                     "lead_name": lead_name,          # Nombre del lead duplicado
                     "lead_owner": lead_owner         # Usuario al que está asignado
                 })
-                
+                # Load the merging document
+                original_doc = frappe.get_doc("CRM Lead", lead['name'])
+                # Create a new merged Leads document instance
+                new_doc = frappe.new_doc("Merged Leads")
+                # Copy data from the merging document
+                new_doc.update(original_doc.as_dict())
+                # Set the custom data for the specified fields
+                new_doc.set("docname", lead['name'])
+                # Save the new document
+                new_doc.insert()
+
                 # Eliminar el lead duplicado
                 frappe.delete_doc("CRM Lead", lead['name'], ignore_missing=True)
         
